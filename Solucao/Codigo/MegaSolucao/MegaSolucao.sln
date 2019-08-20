@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MegaSolucao", "MegaSolucao.csproj", "{7C1CC6E7-BE7C-48F9-9F5B-D264B023136F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MegaSolucao", "MegaSolucao.csproj", "{E13F1AD3-90F3-494A-96AD-28E998741777}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7C1CC6E7-BE7C-48F9-9F5B-D264B023136F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7C1CC6E7-BE7C-48F9-9F5B-D264B023136F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7C1CC6E7-BE7C-48F9-9F5B-D264B023136F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7C1CC6E7-BE7C-48F9-9F5B-D264B023136F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E13F1AD3-90F3-494A-96AD-28E998741777}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E13F1AD3-90F3-494A-96AD-28E998741777}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E13F1AD3-90F3-494A-96AD-28E998741777}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E13F1AD3-90F3-494A-96AD-28E998741777}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {52FF716C-75EF-4231-9DBF-E64BF8CB50CF}
+		SolutionGuid = {43BAECDE-2FB6-41CD-B963-1B3098BA561A}
 	EndGlobalSection
 EndGlobal
