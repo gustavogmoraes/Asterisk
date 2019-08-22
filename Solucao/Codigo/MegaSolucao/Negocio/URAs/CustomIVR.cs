@@ -63,7 +63,7 @@ namespace MegaSolucao.Negocio.URAs
                     quemLigou = request.Request["callerid"].ToString();
                     Thread.Sleep(2000);
 
-                    Persistencia.FilaPraLigar.Add(quemLigou);
+                    //Persistencia.FilaPraLigar.Add(quemLigou);
                     Hangup();
 
                     return;

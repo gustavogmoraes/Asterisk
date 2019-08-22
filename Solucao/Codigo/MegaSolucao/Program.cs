@@ -12,6 +12,8 @@ using AsterNET.Manager.Action;
 using AsterNET.Manager.Event;
 using AsterNET.Manager.Response;
 using MegaSolucao.Infraestrutura;
+using MegaSolucao.Persistencia.BancoDeDados.MySql;
+using MegaSolucao.Persistencia.BancoDeDados.Raven;
 using MegaSolucao.Utilitarios;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -52,11 +54,11 @@ namespace MegaSolucao
             {
                 Thread.Sleep(Sessao.Configuracao.CooldownExecutarLigacoes);
 
-                var numeroPraLigar = Persistencia.FilaPraLigar.FirstOrDefault();
+                var numeroPraLigar = string.Empty; //Persistencia.FilaPraLigar.FirstOrDefault();
                 if (numeroPraLigar == null) continue;
 
                 OriginarLigacao("9003", numeroPraLigar);
-                Persistencia.FilaPraLigar.Remove(numeroPraLigar);
+                //Persistencia.FilaPraLigar.Remove(numeroPraLigar);
             }
         }
 

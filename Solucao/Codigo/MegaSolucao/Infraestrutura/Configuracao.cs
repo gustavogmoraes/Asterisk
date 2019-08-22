@@ -9,6 +9,10 @@ namespace MegaSolucao.Infraestrutura
     {
         public ConexaoAsterisk ConexaoAsterisk { get; set; }
 
+        public ConexaoRavenDB ConexaoRavenDB { get; set; }
+
+        public ConexaoMySql ConexaoMySql { get; set; }
+
         public TimeSpan CooldownExecutarLigacoes { get; set; }
     }
 }
