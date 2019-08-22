@@ -1,11 +1,12 @@
 using System;
 using System.Threading;
+using AsterNET;
 using AsterNET.FastAGI;
 using AsterNET.FastAGI.Command;
 using AsterNET.Manager;
 using AsterNET.Manager.Action;
 
-namespace AsterNET.Test
+namespace MegaSolucao.Negocio.URAs
 {
 	public class CustomIVR : AGIScript
 	{

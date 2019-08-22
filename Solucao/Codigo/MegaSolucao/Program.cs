@@ -11,6 +11,8 @@ using AsterNET.Manager;
 using AsterNET.Manager.Action;
 using AsterNET.Manager.Event;
 using AsterNET.Manager.Response;
+using MegaSolucao.Infraestrutura;
+using MegaSolucao.Utilitarios;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -21,31 +23,25 @@ namespace MegaSolucao
     public class Program
     {
         // WebAPI
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) => 
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                   .UseStartup<Startup>();
 
-        const string DEV_HOST = "192.168.15.9";
-        const int ASTERISK_PORT = 5038;
-        const string ASTERISK_HOST = "192.168.15.240";
-        const string ASTERISK_LOGINNAME = "snep";
-        const string ASTERISK_LOGINPWD = "sneppass";
-
-        const string ORIGINATE_CONTEXT = "from-internal";
-        const string ORIGINATE_CHANNEL = "IAX2/100";
-        const string ORIGINATE_EXTRA_CHANNEL = "SIP/101";
-        const string ORIGINATE_EXTRA_EXTEN = "101";
-        const string ORIGINATE_EXTEN = "101";
-        const string ORIGINATE_CALLERID = "Asterisk.NET";
-        const int ORIGINATE_TIMEOUT = 15000;
-
-
+        private static ManagerConnection _manager;
+        private static string _monitorChannel = null;
+        private static string _transferChannel = null;
 
         public static void Main(string[] args)
         {
-            Task.Run(() => CheckFastAGI());
+            _manager = Sessao.Configuracao.ConexaoAsterisk.ToManagerConnection(x =>
+            {
+                x.FireAllEvents = true;
+                x.PingInterval = 0;
+            });
 
-            Task.Run(() => ExecuteLigacoes());
+            Task.Run(CheckFastAGI);
+
+            Task.Run(ExecuteLigacoes);
 
             CreateWebHostBuilder(args).Build().Run();
         }
@@ -54,28 +50,21 @@ namespace MegaSolucao
         {
             while (true)
             {
-                Thread.Sleep(15000);
+                Thread.Sleep(Sessao.Configuracao.CooldownExecutarLigacoes);
 
                 var numeroPraLigar = Persistencia.FilaPraLigar.FirstOrDefault();
-                if (numeroPraLigar != null)
-                {
-                    OriginarLigacao("9003", numeroPraLigar);
-                    Persistencia.FilaPraLigar.Remove(numeroPraLigar);
-                }
+                if (numeroPraLigar == null) continue;
+
+                OriginarLigacao("9003", numeroPraLigar);
+                Persistencia.FilaPraLigar.Remove(numeroPraLigar);
             }
         }
 
         public static void OriginarLigacao(string quemLiga, string quemAtende)
         {
-            var manager = new ManagerConnection(ASTERISK_HOST, ASTERISK_PORT, ASTERISK_LOGINNAME, ASTERISK_LOGINPWD)
-            {
-                FireAllEvents = true,
-                PingInterval = 0
-            };
-
             try
             {
-                manager.Login();
+                _manager.Login();
 
                 var ramalOriginario = quemLiga;
                 var canalParaLigacao = quemAtende;
@@ -91,71 +80,79 @@ namespace MegaSolucao
                     Async = true
                 };
 
-                var originateResponse = manager.SendAction(actionLigacao, actionLigacao.Timeout);
+                var originateResponse = _manager.SendAction(actionLigacao, actionLigacao.Timeout);
             }
-            catch
+            catch (Exception e)
             {
-
+                Console.WriteLine(e.Message);
             }
         }
 
-        #region checkFastAGI()
+        #region CheckFastAGI
+
         private static void CheckFastAGI()
         {
-            Console.WriteLine(@"
-                                Add next lines to your extension.conf file
-	                                exten => 200,1,agi(agi://" + DEV_HOST + @"/customivr)
-	                                exten => 200,2,Hangup()
-                                reload Asterisk and dial 200 from phone.
-                                Also enter 'agi debug' from Asterisk console to more information.
-                                See CustomIVR.cs and fastagi-mapping.resx to detail.
+            // Anotação
 
-                                Ctrl-C to exit");
-            AsteriskFastAGI agi = new AsteriskFastAGI();
+            // Add next lines to your extension.conf file
+	        // exten => 200,1,agi(agi://" + DEV_HOST + @"/customivr)
+	        // exten => 200,2,Hangup()
+            // reload Asterisk and dial 200 from phone.
+            // Also enter 'agi debug' from Asterisk console to more information.
+            // See CustomIVR.cs and fastagi-mapping.resx to detail.
+
+            //Ctrl-C to exit
+
+            var agi = new AsteriskFastAGI
+            {
+                MappingStrategy = new GeneralMappingStrategy(new List<ScriptMapping>
+                {
+                    new ScriptMapping { ScriptClass = typeof(Negocio.URAs.CustomIVR).FullName, ScriptName = "customivr" },
+                    new ScriptMapping { ScriptClass = typeof(Negocio.URAs.MegaIVR).FullName, ScriptName = "megaivr" }
+                })
+            };
+
             // Remove the lines below to enable the default (resource based) MappingStrategy
             // You can use an XML file with XmlMappingStrategy, or simply pass in a list of
             // ScriptMapping. 
             // If you wish to save it to a file, use ScriptMapping.SaveMappings and pass in a path.
             // This can then be used to load the mappings without having to change the source code!
 
-            agi.MappingStrategy = new GeneralMappingStrategy(new List<ScriptMapping>()
-            {
-                new ScriptMapping() {
-                    ScriptClass = "AsterNET.Test.CustomIVR",
-                    ScriptName = "customivr"
-                },
-                new ScriptMapping()
-                {
-                    ScriptClass = "AsterNET.Test.MegaIVR",
-                    ScriptName = "megaivr"
-                }
-            });
 
             //agi.SC511_CAUSES_EXCEPTION = true;
             //agi.SCHANGUP_CAUSES_EXCEPTION = true;
 
             agi.Start();
         }
+
         #endregion
 
+        #region Originate Constants
 
+        const string ORIGINATE_CONTEXT = "from-internal";
+        const string ORIGINATE_CHANNEL = "IAX2/100";
+        const string ORIGINATE_EXTRA_CHANNEL = "SIP/101";
+        const string ORIGINATE_EXTRA_EXTEN = "101";
+        const string ORIGINATE_EXTEN = "101";
+        const string ORIGINATE_CALLERID = "Asterisk.NET";
+        const int ORIGINATE_TIMEOUT = 15000;
 
-        private static ManagerConnection manager;
-        private static string monitorChannel = null;
-        private static string transferChannel = null;
+        #endregion
 
-        #region displayQueue()
-        private static void displayQueue()
+        #region DisplayQueue
+
+        private static void DisplayQueue()
         {
-            manager = new ManagerConnection(ASTERISK_HOST, ASTERISK_PORT, ASTERISK_LOGINNAME, ASTERISK_LOGINPWD);
+            _manager = Sessao.Configuracao.ConexaoAsterisk.ToManagerConnection();
 
             try
             {
-#if NOTIMEOUT
-				manager.Connection.DefaultTimeout = 0;
-				manager.Connection.DefaultEventTimeout = 0;
-#endif
-                manager.Login();
+                #if NOTIMEOUT
+				    manager.Connection.DefaultTimeout = 0;
+				    manager.Connection.DefaultEventTimeout = 0;
+                #endif
+
+                _manager.Login();
             }
             catch (Exception ex)
             {
@@ -168,7 +165,7 @@ namespace MegaSolucao
             ResponseEvents re;
             try
             {
-                re = manager.SendEventGeneratingAction(new QueueStatusAction());
+                re = _manager.SendEventGeneratingAction(new QueueStatusAction());
             }
             catch (EventTimeoutException e)
             {
@@ -197,53 +194,49 @@ namespace MegaSolucao
             Console.WriteLine("Press ENTER to next test or CTRL-C to exit.");
             Console.ReadLine();
         }
+
         #endregion
 
-        #region checkManagerAPI()
-        private static void checkManagerAPI()
+        #region CheckManagerAPI
+        private static void CheckManagerAPI()
         {
-
-
-
-
-
-            manager = new ManagerConnection(ASTERISK_HOST, ASTERISK_PORT, ASTERISK_LOGINNAME, ASTERISK_LOGINPWD);
+            _manager = Sessao.Configuracao.ConexaoAsterisk.ToManagerConnection();
 
             // Register user event class
-            manager.RegisterUserEventClass(typeof(UserAgentLoginEvent));
+            _manager.RegisterUserEventClass(typeof(UserAgentLoginEvent));
 
             // Add or Remove events
-            manager.UserEvents += new EventHandler<UserEvent>(dam_UserEvents);
+            _manager.UserEvents += new EventHandler<UserEvent>(dam_UserEvents);
 
             // Dont't display this event
-            manager.NewExten += new EventHandler<NewExtenEvent>(manager_IgnoreEvent);
+            _manager.NewExten += new EventHandler<NewExtenEvent>(manager_IgnoreEvent);
 
             // Display all other
-            manager.UnhandledEvent += new EventHandler<ManagerEvent>(dam_Events);
+            _manager.UnhandledEvent += new EventHandler<ManagerEvent>(dam_Events);
 
             // +++ Only to debug purpose
-            manager.FireAllEvents = true;
+            _manager.FireAllEvents = true;
             // manager.DefaultEventTimeout = 0;
             // manager.DefaultResponseTimeout = 0;
-            manager.PingInterval = 0;
+            _manager.PingInterval = 0;
             // +++
             try
             {
-                manager.Login();            // Login only (fast)
+                _manager.Login();            // Login only (fast)
 
-                Console.WriteLine("Asterisk version : " + manager.Version);
+                Console.WriteLine("Asterisk version : " + _manager.Version);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
                 Console.ReadLine();
-                manager.Logoff();
+                _manager.Logoff();
                 return;
             }
 
             {
                 Console.WriteLine("\nGetConfig action");
-                ManagerResponse response = manager.SendAction(new GetConfigAction("manager.conf"));
+                ManagerResponse response = _manager.SendAction(new GetConfigAction("manager.conf"));
                 if (response.IsSuccess())
                 {
                     GetConfigResponse responseConfig = (GetConfigResponse)response;
@@ -265,7 +258,7 @@ namespace MegaSolucao
                 UpdateConfigAction config = new UpdateConfigAction("manager.conf", "manager.conf");
                 config.AddCommand(UpdateConfigAction.ACTION_NEWCAT, "testadmin");
                 config.AddCommand(UpdateConfigAction.ACTION_APPEND, "testadmin", "secret", "blabla");
-                ManagerResponse response = manager.SendAction(config);
+                ManagerResponse response = _manager.SendAction(config);
                 Console.WriteLine(response);
             }
 
@@ -274,6 +267,8 @@ namespace MegaSolucao
                 + "Start phone (or connect) or make a call to see events.\n"
                 + "After all events press a key to originate call.");
             Console.ReadLine();
+
+
 
             OriginateAction oc = new OriginateAction();
             oc.Context = ORIGINATE_CONTEXT;
@@ -284,7 +279,7 @@ namespace MegaSolucao
             oc.Timeout = ORIGINATE_TIMEOUT;
             // oc.Variable = "VAR1=abc|VAR2=def";
             // oc.SetVariable("VAR3", "ghi");
-            ManagerResponse originateResponse = manager.SendAction(oc, oc.Timeout);
+            ManagerResponse originateResponse = _manager.SendAction(oc, oc.Timeout);
             Console.WriteLine("Response:");
             Console.WriteLine(originateResponse);
 
@@ -297,13 +292,13 @@ namespace MegaSolucao
             {
                 CommandAction command = new CommandAction();
                 CommandResponse response = new CommandResponse();
-                if (manager.AsteriskVersion == AsteriskVersion.ASTERISK_1_6)
+                if (_manager.AsteriskVersion == AsteriskVersion.ASTERISK_1_6)
                     command.Command = "queue show";
                 else
                     command.Command = "show queues";
                 try
                 {
-                    response = (CommandResponse)manager.SendAction(command);
+                    response = (CommandResponse)_manager.SendAction(command);
                     Console.WriteLine("Result of " + command.Command);
                     foreach (string str in response.Result)
                         Console.WriteLine("\t" + str);
@@ -321,7 +316,7 @@ namespace MegaSolucao
             ResponseEvents re;
             try
             {
-                re = manager.SendEventGeneratingAction(new QueueStatusAction());
+                re = _manager.SendEventGeneratingAction(new QueueStatusAction());
             }
             catch (EventTimeoutException e)
             {
@@ -364,25 +359,25 @@ namespace MegaSolucao
             Console.WriteLine("Redirect Call from " + ORIGINATE_CHANNEL + " to " + ORIGINATE_EXTRA_CHANNEL + " or press ESC.");
             // Wait for Dial Event from ORIGINATE_CHANNEL
             EventHandler<DialEvent> de = new EventHandler<DialEvent>(dam_Dial);
-            manager.Dial += de;
-            while (transferChannel == null)
+            _manager.Dial += de;
+            while (_transferChannel == null)
             {
                 System.Threading.Thread.Sleep(100);
                 if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
                     break;
             }
-            manager.Dial -= de;
+            _manager.Dial -= de;
 
             // Now send Redirect action
             RedirectAction ra = new RedirectAction();
-            ra.Channel = transferChannel;
+            ra.Channel = _transferChannel;
             ra.ExtraChannel = ORIGINATE_EXTRA_CHANNEL;
             ra.Context = ORIGINATE_CONTEXT;
             ra.Exten = ORIGINATE_EXTRA_EXTEN;
             ra.Priority = 1;
             try
             {
-                ManagerResponse mr = manager.SendAction(ra, 10000);
+                ManagerResponse mr = _manager.SendAction(ra, 10000);
                 Console.WriteLine("Transfer Call"
                     + "\n\tResponse:" + mr.Response
                     + "\n\tMessage:" + mr.Message
@@ -399,23 +394,23 @@ namespace MegaSolucao
             Console.WriteLine("Monitor call. Please call " + ORIGINATE_CHANNEL + " and answer or press ESC.");
             // Wait for Link event
             EventHandler<LinkEvent> le = new EventHandler<LinkEvent>(dam_Link);
-            manager.Link += le;
-            while (monitorChannel == null)
+            _manager.Link += le;
+            while (_monitorChannel == null)
             {
                 System.Threading.Thread.Sleep(100);
                 if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
                     break;
             }
-            manager.Link -= le;
+            _manager.Link -= le;
             // Now send Monitor action
             MonitorAction ma = new MonitorAction();
-            ma.Channel = monitorChannel;
+            ma.Channel = _monitorChannel;
             ma.File = "voicefile";
             ma.Format = "gsm";
             ma.Mix = true;
             try
             {
-                ManagerResponse mr = manager.SendAction(ma, 10000);
+                ManagerResponse mr = _manager.SendAction(ma, 10000);
                 Console.WriteLine("Monitor Call"
                     + "\n\tResponse:" + mr.Response);
             }
@@ -424,7 +419,7 @@ namespace MegaSolucao
                 Console.WriteLine(ex.Message);
             }
 
-            manager.Logoff();
+            _manager.Logoff();
         }
 
         static void manager_IgnoreEvent(object sender, NewExtenEvent e)
@@ -434,7 +429,7 @@ namespace MegaSolucao
 
         #endregion
 
-        #region Event handlers
+        #region Event Handlers
         static void dam_Events(object sender, ManagerEvent e)
         {
             Console.WriteLine(e);
@@ -452,7 +447,7 @@ namespace MegaSolucao
                 + "\n\tChannel2:\t" + e.Channel2
                 );
             if (e.Channel1.StartsWith(ORIGINATE_CHANNEL) || e.Channel2.StartsWith(ORIGINATE_CHANNEL))
-                monitorChannel = e.Channel1;
+                _monitorChannel = e.Channel1;
         }
 
         static void dam_ExtensionStatus(object sender, ExtensionStatusEvent e)
@@ -476,7 +471,7 @@ namespace MegaSolucao
                 + "\n\tSrcUniqueId\t" + e.SrcUniqueId
                 );
             if (e != null && e.Destination != null && e.Destination.StartsWith(ORIGINATE_CHANNEL))
-                transferChannel = e.Src;
+                _transferChannel = e.Src;
         }
 
         static void dam_Hangup(object sender, HangupEvent e)
@@ -548,16 +543,8 @@ namespace MegaSolucao
 
     public class UserAgentLoginEvent : UserEvent
     {
-        private string agent;
-        public string Agent
-        {
-            get { return agent; }
-            set { agent = value; }
-        }
+        public string Agent { get; set; }
 
-        public UserAgentLoginEvent(ManagerConnection source)
-            : base(source)
-        {
-        }
+        public UserAgentLoginEvent(ManagerConnection source): base(source) { }
     }
 }

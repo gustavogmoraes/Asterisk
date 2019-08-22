@@ -9,7 +9,7 @@ using AsterNET.FastAGI.Command;
 using AsterNET.Manager;
 using AsterNET.Manager.Action;
 
-namespace AsterNET.Test
+namespace MegaSolucao.Negocio.URAs
 {
     public class MegaIVR : AGIScript
     {
