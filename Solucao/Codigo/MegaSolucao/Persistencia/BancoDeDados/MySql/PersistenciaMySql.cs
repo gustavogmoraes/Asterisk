@@ -8,7 +8,7 @@ using MegaSolucao.Infraestrutura;
 
 namespace MegaSolucao.Persistencia.BancoDeDados.MySql
 {
-    public static class GSMySql
+    public static class PersistenciaMySql
     {
         #region Constantes
 
@@ -22,7 +22,7 @@ namespace MegaSolucao.Persistencia.BancoDeDados.MySql
 
         #region Construtores
 
-        static GSMySql()
+        static PersistenciaMySql()
         {
             // Configuração
             DefinaStringDeConexao(Sessao.Configuracao.ConexaoMySql);

@@ -20,6 +20,11 @@ namespace MegaSolucao.Infraestrutura
                     LoginDoAsterisk = "snep",
                     SenhaDoAsterisk = "sneppass"
                 },
+                ConexaoRavenDB = new ConexaoRavenDB
+                {
+                    Servidor = @"localhost:32769",
+                    NomeDoBanco = "Test"
+                },
                 CooldownExecutarLigacoes = TimeSpan.FromSeconds(10)
             };
         }
