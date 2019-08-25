@@ -7,19 +7,16 @@ using AsterNET.FastAGI;
 using AsterNET.Manager.Event;
 using AsterNET.FastAGI.MappingStrategies;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Linq;
 
 namespace AsterNET.Test
 {
 	class Program
 	{
-		const string DEV_HOST = "192.168.15.9";
+		const string DEV_HOST = "192.168.2.34";
 		const int ASTERISK_PORT = 5038;
-		const string ASTERISK_HOST = "192.168.15.240";
-		const string ASTERISK_LOGINNAME = "snep";
-		const string ASTERISK_LOGINPWD = "sneppass";
+		const string ASTERISK_HOST = "192.168.2.39";
+		const string ASTERISK_LOGINNAME = "admin";
+		const string ASTERISK_LOGINPWD = "amp111";
 
 		const string ORIGINATE_CONTEXT = "from-internal";
 		const string ORIGINATE_CHANNEL = "IAX2/100";
@@ -32,72 +29,15 @@ namespace AsterNET.Test
 		[STAThread]
 		static void Main()
 		{
+            // Comment me out if you don't want to run the AMI sample
+			checkManagerAPI();
 
-            Task.Run(() => checkFastAGI());
-
-            Task.Run(() => ExecuteLigacoes());
-
-            while(true)
-            {
-
-            };
-
-            //Teste();
-
-            //checkManagerAPI();
+            // Comment me out if you don't want to run the FastAGI sample
+			checkFastAGI();
 		}
 
-        public static void ExecuteLigacoes()
-        {
-            while(true)
-            {
-                Thread.Sleep(15000);
-
-                var numeroPraLigar = Persistencia.FilaPraLigar.FirstOrDefault();
-                if(numeroPraLigar != null)
-                {
-                    OriginarLigacao("9003", numeroPraLigar);
-                    Persistencia.FilaPraLigar.Remove(numeroPraLigar);
-                }
-            }
-        }
-
-        public static void OriginarLigacao(string quemLiga, string quemAtende)
-        {
-            var manager = new ManagerConnection(ASTERISK_HOST, ASTERISK_PORT, ASTERISK_LOGINNAME, ASTERISK_LOGINPWD)
-            {
-                FireAllEvents = true,
-                PingInterval = 0
-            };
-
-            try
-            {
-                manager.Login();
-
-                var ramalOriginario = quemLiga;
-                var canalParaLigacao = quemAtende;
-
-                var actionLigacao = new OriginateAction
-                {
-                    Context = "default", //"from-internal",
-                    Priority = "1",
-                    Channel = $"SIP/{canalParaLigacao}", //SIP/peer/9001
-                    CallerId = "Chapeleta de Ouro",
-                    Exten = ramalOriginario,
-                    Timeout = 15000,
-                    Async = true
-                };
-
-                var originateResponse = manager.SendAction(actionLigacao, actionLigacao.Timeout);
-            }
-            catch
-            {
-
-            }
-        }
-
-        #region checkFastAGI()
-        private static void checkFastAGI()
+		#region checkFastAGI()
+		private static void checkFastAGI()
 		{
 			Console.WriteLine(@"
 Add next lines to your extension.conf file
@@ -120,11 +60,6 @@ Ctrl-C to exit");
                 new ScriptMapping() {
                     ScriptClass = "AsterNET.Test.CustomIVR",
                     ScriptName = "customivr"
-                },
-                new ScriptMapping()
-                {
-                    ScriptClass = "AsterNET.Test.MegaIVR",
-                    ScriptName = "megaivr"
                 }
             });
 
@@ -133,11 +68,9 @@ Ctrl-C to exit");
 
 			agi.Start();
 		}
-        #endregion
+		#endregion
 
-        
-
-        private static ManagerConnection manager;
+		private static ManagerConnection manager;
 		private static string monitorChannel = null;
 		private static string transferChannel = null;
 
@@ -199,11 +132,6 @@ Ctrl-C to exit");
 		#region checkManagerAPI()
 		private static void checkManagerAPI()
 		{
-
-
-
-
-
 			manager = new ManagerConnection(ASTERISK_HOST, ASTERISK_PORT, ASTERISK_LOGINNAME, ASTERISK_LOGINPWD);
 
 			// Register user event class

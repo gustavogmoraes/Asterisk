@@ -1,16 +1,12 @@
 using System;
-using System.Threading;
 using AsterNET.FastAGI;
-using AsterNET.FastAGI.Command;
-using AsterNET.Manager;
-using AsterNET.Manager.Action;
 
 namespace AsterNET.Test
 {
 	public class CustomIVR : AGIScript
 	{
 		private string escapeKeys = "0123456789*#";
-        /*
+		/*
 		 * Call -> play "wellcome" -> wait digit 5 seconds -> press 1 -> play "press-1" -> wait digit -> press * ----------------------------\
 		 *               ^                    ^                                                 ^     -> press 4 -> play "press-4" -------\  |
 		 *               |                    |                                                 |     -> press any -> play "bad" "digit" -+  |
@@ -33,17 +29,8 @@ namespace AsterNET.Test
 		 *               \-------------------------------------------------------------------------------------------------------------------/
 		 */
 
-        //onst string DEV_HOST = "192.168.15.9";
-        const int ASTERISK_PORT = 5038;
-        const string ASTERISK_HOST = "192.168.15.240";
-        const string ASTERISK_LOGINNAME = "snep";
-        const string ASTERISK_LOGINPWD = "sneppass";
-
-        
-
-        public override void Service(AGIRequest request, AGIChannel channel)
+		public override void Service(AGIRequest request, AGIChannel channel)
 		{
-            var quemLigou = string.Empty;
 			Answer();
 			int submenu = 0;
 			char key = '\0';
@@ -53,25 +40,9 @@ namespace AsterNET.Test
 			{
 				if (welcome)
 				{
-                    Thread.Sleep(5000);
-
 					key = StreamFile("welcome", escapeKeys);
 					welcome = false;
 					submenu = 0;
-
-                    quemLigou = request.Request["callerid"].ToString();
-                    Thread.Sleep(2000);
-
-                    Persistencia.FilaPraLigar.Add(quemLigou);
-                    Hangup();
-
-                    return;
-
-                    //SetVariable("callerid", "9002");
-                    //var callerId = GetVariable("agi_callerid"); //channel.SendCommand(new GetVariableCommand("callerid"));
-                    //SetExtension("9002");
-                    //return;
-                    //Exec("9003");
 				}
 				if (key == '\0')
 				{
@@ -141,8 +112,7 @@ namespace AsterNET.Test
 				}
 				key = newKey;
 			}
-            
 			Hangup();
-        }
+		}
 	}
 }

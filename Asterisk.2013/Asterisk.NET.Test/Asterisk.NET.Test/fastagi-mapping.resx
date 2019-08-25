@@ -120,9 +120,6 @@
   <data name="customivr" xml:space="preserve">
     <value>AsterNET.Test.CustomIVR, AsterNET.Test</value>
   </data>
-  <data name="megaivr" xml:space="preserve">
-    <value>AsterNET.Test.MegaIVR, AsterNET.Test</value>
-  </data>
   <data name="noaction" xml:space="preserve">
     <value>AsterNET.FastAGI.Scripts.AGINoAction, Asterisk.NET</value>
   </data>
