@@ -41,22 +41,26 @@ namespace MegaSolucao
                 x.PingInterval = 0;
             });
 
-            Task.Run(() =>
-            {
-                using (var sessaoRaven = PersistenciaRavenDb.AbraSessao())
-                {
-                    //var test = _manager;
-                    sessaoRaven.Store(_manager);
-                    //sessaoRaven.Store(Sessao.Configuracao.ConexaoAsterisk);
-                    sessaoRaven.SaveChanges();
-                }
-            });
+            //using (var sessaoRaven = PersistenciaRavenDb.AbraSessao())
+            //{
+            //    //var test = _manager;
+            //    sessaoRaven.Store(_manager);
+            //    //sessaoRaven.Store(Sessao.Configuracao.ConexaoAsterisk);
+            //    sessaoRaven.SaveChanges();
+            //}
+
+            Task.Run(InicieTracking);
 
             Task.Run(CheckFastAGI);
 
             Task.Run(ExecuteLigacoes);
 
             CreateWebHostBuilder(args).Build().Run();
+        }
+
+        public static void InicieTracking()
+        {
+
         }
 
         public static void ExecuteLigacoes()
@@ -68,7 +72,7 @@ namespace MegaSolucao
                 var numeroPraLigar = string.Empty; //Persistencia.FilaPraLigar.FirstOrDefault();
                 if (numeroPraLigar == null || string.IsNullOrEmpty(numeroPraLigar)) continue;
 
-                OriginarLigacao("9003", numeroPraLigar);
+                OriginarLigacao("9001", numeroPraLigar);
                 //Persistencia.FilaPraLigar.Remove(numeroPraLigar);
             }
         }

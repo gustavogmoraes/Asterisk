@@ -15,14 +15,15 @@ namespace MegaSolucao.Infraestrutura
             {
                 ConexaoAsterisk = new ConexaoAsterisk
                 {
-                    HostDaAplicacao = "192.168.15.9",
-                    HostDoAsterisk = "192.168.15.240",
+                    HostDaAplicacao = "192.168.15.149",
+                    HostDoAsterisk = "192.168.15.204",
+                    PortaDoAsterisk = 5038,
                     LoginDoAsterisk = "snep",
                     SenhaDoAsterisk = "sneppass"
                 },
                 ConexaoRavenDB = new ConexaoRavenDB
                 {
-                    Servidor = @"localhost:32769",
+                    Servidor = @"localhost:32772",
                     NomeDoBanco = "Test"
                 },
                 CooldownExecutarLigacoes = TimeSpan.FromSeconds(10)
