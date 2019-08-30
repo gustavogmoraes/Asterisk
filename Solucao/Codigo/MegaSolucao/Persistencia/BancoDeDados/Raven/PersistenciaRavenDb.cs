@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using MegaSolucao.Infraestrutura;
@@ -25,7 +26,6 @@ namespace MegaSolucao.Persistencia.BancoDeDados.Raven
             };
 
             SobrescrevaConventions(DocumentStore);
-            DocumentStore.Initialize();
         }
 
         private static void SobrescrevaConventions(DocumentStore documentStore)
@@ -44,6 +44,7 @@ namespace MegaSolucao.Persistencia.BancoDeDados.Raven
 
         public static IDocumentSession AbraSessao()
         {
+            DocumentStore.Initialize();
             return DocumentStore.OpenSession();
         }
 

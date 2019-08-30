@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -19,6 +20,8 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Raven.Client.Documents;
 
 namespace MegaSolucao
 {
@@ -30,8 +33,10 @@ namespace MegaSolucao
                    .UseStartup<Startup>();
 
         private static ManagerConnection _manager;
-        private static string _monitorChannel = null;
-        private static string _transferChannel = null;
+        private static string _monitorChannel;
+        private static string _transferChannel;
+
+        public static void EventSaveDelegate(object sender, object evento) => evento.SalveNoBanco();
 
         public static void Main(string[] args)
         {
@@ -41,19 +46,14 @@ namespace MegaSolucao
                 x.PingInterval = 0;
             });
 
-            //using (var sessaoRaven = PersistenciaRavenDb.AbraSessao())
-            //{
-            //    //var test = _manager;
-            //    sessaoRaven.Store(_manager);
-            //    //sessaoRaven.Store(Sessao.Configuracao.ConexaoAsterisk);
-            //    sessaoRaven.SaveChanges();
-            //}
+            _manager.RegistreTodosOsEventos();
+            _manager.Login(10000);
 
-            Task.Run(InicieTracking);
+            //Task.Run(InicieTracking);
 
-            Task.Run(CheckFastAGI);
+            //Task.Run(CheckFastAGI);
 
-            Task.Run(ExecuteLigacoes);
+            //Task.Run(ExecuteLigacoes);
 
             CreateWebHostBuilder(args).Build().Run();
         }
