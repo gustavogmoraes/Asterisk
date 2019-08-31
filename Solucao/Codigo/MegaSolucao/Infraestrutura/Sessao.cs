@@ -16,7 +16,7 @@ namespace MegaSolucao.Infraestrutura
                 ConexaoAsterisk = new ConexaoAsterisk
                 {
                     HostDaAplicacao = "172.16.2.132",
-                    HostDoAsterisk = "35.199.90.33",
+                    HostDoAsterisk = "35.198.59.136",
                     PortaDoAsterisk = 5038,
                     LoginDoAsterisk = "snep",
                     SenhaDoAsterisk = "sneppass"

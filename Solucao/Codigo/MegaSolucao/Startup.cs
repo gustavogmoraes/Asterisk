@@ -42,7 +42,13 @@ namespace MegaSolucao
             }
 
             app.UseHttpsRedirection();
-            app.UseMvc();
+
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute("default", "api/{controller}/{action}/{id?}");
+            });
         }
     }
 }

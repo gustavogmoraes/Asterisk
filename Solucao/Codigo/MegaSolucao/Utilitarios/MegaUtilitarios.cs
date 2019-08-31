@@ -35,6 +35,8 @@ namespace MegaSolucao.Utilitarios
                                                 .MakeGenericMethod(new[] { objeto.GetType() });
 
             var objetoCongelado = method.Invoke(null, new[] { objeto });
+
+
             using (var sessaoRaven = PersistenciaRavenDb.AbraSessao())
             {
                 sessaoRaven.Store(objetoCongelado);

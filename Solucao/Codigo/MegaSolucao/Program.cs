@@ -45,11 +45,9 @@ namespace MegaSolucao
                 x.FireAllEvents = true;
                 x.PingInterval = 0;
             });
-
-            _manager.RegistreTodosOsEventos();
             _manager.Login(10000);
 
-            //Task.Run(InicieTracking);
+            Task.Run(() => InicieTracking(_manager));
 
             //Task.Run(CheckFastAGI);
 
@@ -58,9 +56,9 @@ namespace MegaSolucao
             CreateWebHostBuilder(args).Build().Run();
         }
 
-        public static void InicieTracking()
+        public static void InicieTracking(ManagerConnection manager)
         {
-
+            manager.RegistreTodosOsEventos();
         }
 
         public static void ExecuteLigacoes()
