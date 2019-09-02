@@ -26,6 +26,14 @@ namespace MegaSolucao.Infraestrutura
                     Servidor = @"localhost:32769",
                     NomeDoBanco = "Test"
                 },
+                ConexaoMySql = new ConexaoMySql
+                {
+                    Servidor = "35.198.59.136",
+                    Porta = 3306,
+                    NomeDoBanco = "snep",
+                    Usuario = "root",
+                    Senha = "sneppass"
+                },
                 CooldownExecutarLigacoes = TimeSpan.FromSeconds(10)
             };
         }

@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using MegaSolucao.Infraestrutura;
+using MySql.Data.MySqlClient;
 
 namespace MegaSolucao.Persistencia.BancoDeDados.MySql
 {
@@ -29,12 +30,12 @@ namespace MegaSolucao.Persistencia.BancoDeDados.MySql
 
         }
 
-        private static SqlConnection AbraConexao()
+        private static MySqlConnection AbraConexao()
         {
-            SqlConnection conexao = null;
+            MySqlConnection conexao = null;
             try
             {
-                conexao = new SqlConnection(_stringDeConexao);
+                conexao = new MySqlConnection(_stringDeConexao);
                 conexao.Open();
             }
             catch (Exception e)
@@ -54,7 +55,7 @@ namespace MegaSolucao.Persistencia.BancoDeDados.MySql
         /// </summary>
         private static void DefinaStringDeConexao(ConexaoMySql conexao)
         {
-            _stringDeConexao = $@"Server = {conexao.Servidor}; Database = {conexao.NomeDoBanco}; Uid = {conexao.Usuario}; Pwd = {conexao.Senha};";
+            _stringDeConexao = $@"Server = {conexao.Servidor}; Port = {conexao.Porta}; Database = {conexao.NomeDoBanco}; Uid = {conexao.Usuario}; Pwd = {conexao.Senha};";
         }
 
         ///// <summary>
@@ -76,7 +77,7 @@ namespace MegaSolucao.Persistencia.BancoDeDados.MySql
             try
             {
                 using (var conexao = AbraConexao())
-                using (var cmd = new SqlCommand(comandoSQL, conexao))
+                using (var cmd = new MySqlCommand(comandoSQL, conexao))
                 {
                     //Executa a query
                     cmd.ExecuteReader();
@@ -104,7 +105,7 @@ namespace MegaSolucao.Persistencia.BancoDeDados.MySql
                 var resultadoConsulta = string.Empty;
 
                 using (var conexao = AbraConexao())
-                using (var cmd = new SqlCommand(comandoSQL, conexao))
+                using (var cmd = new MySqlCommand(comandoSQL, conexao))
                 {
                     resultadoConsulta = cmd.ExecuteScalar().ToString();
                 }
@@ -164,7 +165,7 @@ namespace MegaSolucao.Persistencia.BancoDeDados.MySql
                 var dataTable = new DataTable();
 
                 using (var conexao = AbraConexao())
-                using (var cmd = new SqlCommand(comandoSQL, conexao))
+                using (var cmd = new MySqlCommand(comandoSQL, conexao))
                 {
                     //Executa a query
                     var reader = cmd.ExecuteReader();
@@ -190,7 +191,7 @@ namespace MegaSolucao.Persistencia.BancoDeDados.MySql
             try
             {
                 using (var conexao = AbraConexao())
-                using (var cmd = new SqlCommand("SELECT 1", conexao))
+                using (var cmd = new MySqlCommand("SELECT 1", conexao))
                 {
                     //Executa a query
                     var retorno = cmd.ExecuteScalar();

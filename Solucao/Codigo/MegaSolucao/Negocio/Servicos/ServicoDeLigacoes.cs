@@ -7,6 +7,8 @@ using MegaSolucao.Negocio.DTOs;
 using MegaSolucao.Negocio.Objetos;
 using MegaSolucao.Persistencia.BancoDeDados.MySql;
 using System.Globalization;
+using MegaSolucao.Utilitarios;
+using Raven.Client.Documents.Linq.Indexing;
 
 namespace MegaSolucao.Negocio.Servicos
 {
@@ -25,15 +27,25 @@ namespace MegaSolucao.Negocio.Servicos
                          : string.Empty;
 
             if (!string.IsNullOrEmpty(dataHoraInicio))
+            {
                 filtros.Add($"calldate >= '{dataHoraInicio}'" +
                             $"AND calldate <= '{dataHoraFim}' ");
+            }
+                
 
             var filtroFinal = string.Join("AND ,", filtros);
-            filtroFinal = filtroFinal.Remove(filtroFinal.Length - 5);
+            if (filtros.Count > 0)
+            {
+                filtroFinal = filtroFinal.Remove(filtroFinal.Length - 5);
+            }
+
 
             var query = $"SELECT src, dst, calldate, userfield " +
-                        $"FROM cdr " +
-                        $"WHERE {filtroFinal};";
+                        $"FROM cdr ";
+            if (!string.IsNullOrEmpty(filtroFinal))
+            {
+                query += $"WHERE {filtroFinal};";
+            }
 
             var dataTable = PersistenciaMySql.ExecuteConsulta(query);
 
@@ -47,22 +59,37 @@ namespace MegaSolucao.Negocio.Servicos
 
             var dtos = ligacoes.Select(ConvertaParaDto);
 
+            var dtoLigacoes = dtos.ToList();
+            var novasLigacoes = dtoLigacoes
+                .Where(dtoLigacao => dtoLigacao.Tipo == "Originada" && dtoLigacao.Numero.Length <= 4)
+                .Select(dtoLigacao => dtoLigacao.CloneObjeto(x =>
+                {
+                    var rml = x.Ramal;
+
+                    x.Ramal = x.Numero;
+                    x.Numero = rml;
+                    x.Tipo = "Recebida";
+                })).ToList();
+
+            dtoLigacoes.AddRange(novasLigacoes);
+            dtos = dtoLigacoes;
+
             if (!string.IsNullOrEmpty(filtro.Tipo))
             {
-                dtos = dtos.Where(x => x.Tipo == filtro.Tipo);
+                dtos = dtoLigacoes.Where(x => x.Tipo == filtro.Tipo);
             }
 
             if (!string.IsNullOrEmpty(filtro.Numero))
             {
-                dtos = dtos.Where(x => x.Numero == filtro.Numero);
+                dtos = dtoLigacoes.Where(x => x.Numero == filtro.Numero);
             }
 
             if (!string.IsNullOrEmpty(filtro.Ramal))
             {
-                dtos = dtos.Where(x => x.Ramal == filtro.Ramal);
+                dtos = dtoLigacoes.Where(x => x.Ramal == filtro.Ramal);
             }
 
-            return dtos.ToList();
+            return dtos.OrderByDescending(x => x.Data).ThenByDescending(x => x.Hora).ToList();
         }
 
         private DtoLigacao ConvertaParaDto(Ligacao ligacao)
@@ -70,13 +97,14 @@ namespace MegaSolucao.Negocio.Servicos
             return new DtoLigacao
             {
                 Data = ligacao.Data.ToString("dd/MM/yyyy"),
-                Hora = ligacao.Data.ToString("HH:mm:SS"),
+                Hora = ligacao.Data.ToString("HH:mm:ss"),
                 Numero = ligacao.Tipo == "Recebida"
                        ? ligacao.Origem
                        : ligacao.Destino,
                 Ramal = ligacao.Tipo == "Originada"
                       ? ligacao.Origem
-                      : ligacao.Destino
+                      : ligacao.Destino,
+                Tipo = ligacao.Tipo
             };
         }
 
@@ -87,7 +115,7 @@ namespace MegaSolucao.Negocio.Servicos
                 Origem = linha["src"].ToString(),
                 Destino = linha["dst"].ToString(),
                 UserField = linha["userfield"].ToString(),
-                Data = DateTime.ParseExact(linha["calldate"].ToString(), "yyyy-MM-dd HH:mm:SS", CultureInfo.InvariantCulture)
+                Data = (DateTime)linha["calldate"]
             };
         }
 

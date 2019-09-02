@@ -58,5 +58,20 @@ namespace MegaSolucao.Utilitarios
             }
             
         }
+        public static TTipo CloneObjeto<TTipo>(this TTipo objeto, Action<TTipo> objectInitializer = null)
+            where TTipo : class, new()
+        {
+            var novoObjeto = new TTipo();
+
+            objeto.GetType().GetProperties().ToList().ForEach(propriedade =>
+            {
+                var valorProp = propriedade.GetValue(objeto);
+                propriedade.SetValue(novoObjeto, valorProp, null);
+            });
+
+            objectInitializer?.Invoke(novoObjeto);
+
+            return novoObjeto;
+        }
     }
 }
