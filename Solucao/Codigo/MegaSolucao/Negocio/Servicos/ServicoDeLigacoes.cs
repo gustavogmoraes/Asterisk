@@ -40,7 +40,7 @@ namespace MegaSolucao.Negocio.Servicos
             }
 
 
-            var query = $"SELECT src, dst, calldate, userfield " +
+            var query = $"SELECT src, dst, calldate, userfield, duration " +
                         $"FROM cdr ";
             if (!string.IsNullOrEmpty(filtroFinal))
             {
@@ -97,7 +97,6 @@ namespace MegaSolucao.Negocio.Servicos
             return new DtoLigacao
             {
                 DataHora = ligacao.Data.ToString("dd/MM/yyyy HH:mm:ss"),
-                //Hora = ligacao.Data.ToString("HH:mm:ss"),
                 Duracao = ligacao.Duracao.ToString(),
                 Numero = ligacao.Tipo == "Recebida"
                        ? ligacao.Origem
@@ -111,14 +110,14 @@ namespace MegaSolucao.Negocio.Servicos
 
         private Ligacao MonteObjeto(DataRow linha)
         {
-          return new Ligacao
-          {
-            Origem = linha["src"].ToString(),
-            Destino = linha["dst"].ToString(),
-            UserField = linha["userfield"].ToString(),
-            Data = (DateTime)linha["calldate"],
-            Duracao = TimeSpan.FromSeconds((int)linha["duration"])
-                };
+            return new Ligacao
+            {
+                Origem = linha["src"].ToString(),
+                Destino = linha["dst"].ToString(),
+                UserField = linha["userfield"].ToString(),
+                Data = (DateTime)linha["calldate"],
+                Duracao = TimeSpan.FromSeconds((int)linha["duration"])
+            };
         }
 
         #region IDisposable Support
