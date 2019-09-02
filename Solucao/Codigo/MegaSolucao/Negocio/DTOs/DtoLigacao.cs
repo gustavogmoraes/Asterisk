@@ -4,6 +4,7 @@ namespace MegaSolucao.Negocio.DTOs
     [Serializable]
     public class DtoLigacao
     {
+        public string position { get; set; }
         public string Numero { get; set; }
 
         public string Ramal { get; set; }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -47,7 +47,7 @@ namespace MegaSolucao
             });
             _manager.Login(10000);
 
-            Task.Run(() => InicieTracking(_manager));
+            //Task.Run(() => InicieTracking(_manager));
 
             //Task.Run(CheckFastAGI);
 

@@ -48,10 +48,11 @@ namespace MegaSolucao.Negocio.Servicos
             }
 
             var dataTable = PersistenciaMySql.ExecuteConsulta(query);
-
+            
             var ligacoes = dataTable.Rows.OfType<DataRow>().Select(MonteObjeto).ToList();
             ligacoes.ForEach(x =>
             {
+          
                 x.Tipo = x.Origem.Length > 4
                        ? "Recebida"
                        : "Originada";
@@ -89,13 +90,21 @@ namespace MegaSolucao.Negocio.Servicos
                 dtos = dtoLigacoes.Where(x => x.Ramal == filtro.Ramal);
             }
 
-            return dtos.OrderByDescending(x => x.DataHora).ToList();
-        }
+            int i = 1;
+            var dtosPosition = dtos.OrderByDescending(x => x.DataHora).ToList();
+            dtosPosition.ForEach(x =>
+            {
+              x.position = i++.ToString();
+          
+              });
+            return dtosPosition;
+    }
 
         private DtoLigacao ConvertaParaDto(Ligacao ligacao)
         {
-            return new DtoLigacao
-            {
+      return new DtoLigacao
+      {
+                position = ligacao.position,
                 DataHora = ligacao.Data.ToString("dd/MM/yyyy HH:mm:ss"),
                 Duracao = ligacao.Duracao.ToString(),
                 Numero = ligacao.Tipo == "Recebida"
@@ -112,6 +121,7 @@ namespace MegaSolucao.Negocio.Servicos
         {
             return new Ligacao
             {
+               
                 Origem = linha["src"].ToString(),
                 Destino = linha["dst"].ToString(),
                 UserField = linha["userfield"].ToString(),
