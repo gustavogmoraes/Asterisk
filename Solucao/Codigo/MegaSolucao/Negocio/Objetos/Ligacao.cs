@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 namespace MegaSolucao.Negocio.Objetos
 {
     public class Ligacao
@@ -10,6 +10,8 @@ namespace MegaSolucao.Negocio.Objetos
         public string Tipo { get; set; }
 
         public DateTime Data { get; set; }
+
+        public TimeSpan Duracao { get; set; }
 
         public string UserField { get; set; }
     }

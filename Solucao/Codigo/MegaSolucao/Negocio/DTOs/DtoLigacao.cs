@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 namespace MegaSolucao.Negocio.DTOs
 {
     [Serializable]
@@ -8,9 +8,9 @@ namespace MegaSolucao.Negocio.DTOs
 
         public string Ramal { get; set; }
 
-        public string Data { get; set; }
+        public string DataHora { get; set; }
 
-        public string Hora { get; set; }
+        public string Duracao { get; set; }
 
         public string Tipo { get; set; }
     }

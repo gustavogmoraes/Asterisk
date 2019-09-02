@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 
 using System.Collections.Generic;
@@ -89,15 +89,16 @@ namespace MegaSolucao.Negocio.Servicos
                 dtos = dtoLigacoes.Where(x => x.Ramal == filtro.Ramal);
             }
 
-            return dtos.OrderByDescending(x => x.Data).ThenByDescending(x => x.Hora).ToList();
+            return dtos.OrderByDescending(x => x.DataHora).ToList();
         }
 
         private DtoLigacao ConvertaParaDto(Ligacao ligacao)
         {
             return new DtoLigacao
             {
-                Data = ligacao.Data.ToString("dd/MM/yyyy"),
-                Hora = ligacao.Data.ToString("HH:mm:ss"),
+                DataHora = ligacao.Data.ToString("dd/MM/yyyy HH:mm:ss"),
+                //Hora = ligacao.Data.ToString("HH:mm:ss"),
+                Duracao = ligacao.Duracao.ToString(),
                 Numero = ligacao.Tipo == "Recebida"
                        ? ligacao.Origem
                        : ligacao.Destino,
@@ -110,13 +111,14 @@ namespace MegaSolucao.Negocio.Servicos
 
         private Ligacao MonteObjeto(DataRow linha)
         {
-            return new Ligacao
-            {
-                Origem = linha["src"].ToString(),
-                Destino = linha["dst"].ToString(),
-                UserField = linha["userfield"].ToString(),
-                Data = (DateTime)linha["calldate"]
-            };
+          return new Ligacao
+          {
+            Origem = linha["src"].ToString(),
+            Destino = linha["dst"].ToString(),
+            UserField = linha["userfield"].ToString(),
+            Data = (DateTime)linha["calldate"],
+            Duracao = TimeSpan.FromSeconds((int)linha["duration"])
+                };
         }
 
         #region IDisposable Support
