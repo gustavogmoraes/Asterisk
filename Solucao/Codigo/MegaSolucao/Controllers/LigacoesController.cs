@@ -8,13 +8,11 @@ using MegaSolucao.Negocio.Servicos;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace MegaSolucao.Controllers
 {
     [Route("api/[controller]")]
-    [EnableCors]
-    public class LigacoesController : Controller
+    [ApiController]
+    public class LigacoesController : ControllerBase
     {
         [HttpPost("[action]")]
         public ActionResult<List<DtoLigacao>> ConsulteLigacoes([FromBody]DtoConsultaLigacoes filtro)
