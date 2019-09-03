@@ -9,6 +9,11 @@ using MegaSolucao.Persistencia.BancoDeDados.MySql;
 using System.Globalization;
 using MegaSolucao.Utilitarios;
 using Raven.Client.Documents.Linq.Indexing;
+using Microsoft.AspNetCore.Mvc;
+using System.IO;
+using System.Net.Http;
+using MegaSolucao.Infraestrutura;
+using System.Threading.Tasks;
 
 namespace MegaSolucao.Negocio.Servicos
 {
@@ -106,8 +111,8 @@ namespace MegaSolucao.Negocio.Servicos
 
         private DtoLigacao ConvertaParaDto(Ligacao ligacao)
         {
-      return new DtoLigacao
-      {
+            return new DtoLigacao
+            {
                 position = ligacao.position,
                 DataHora = ligacao.Data.ToString("dd/MM/yyyy HH:mm:ss"),
                 Duracao = ligacao.Duracao.ToString(),
@@ -117,7 +122,8 @@ namespace MegaSolucao.Negocio.Servicos
                 Ramal = ligacao.Tipo == "Originada"
                       ? ligacao.Origem
                       : ligacao.Destino,
-                Tipo = ligacao.Tipo
+                Tipo = ligacao.Tipo,
+                UniqueId = ligacao.UniqueId
             };
         }
 
@@ -125,13 +131,34 @@ namespace MegaSolucao.Negocio.Servicos
         {
             return new Ligacao
             {
-               
                 Origem = linha["src"].ToString(),
                 Destino = linha["dst"].ToString(),
-                UserField = linha["userfield"].ToString(),
+                UniqueId = linha["uniqueid"].ToString(),
                 Data = (DateTime)linha["calldate"],
                 Duracao = TimeSpan.FromSeconds((int)linha["duration"])
             };
+        }
+
+        public async Task<Stream> ObtenhaGravacao(string uniqueId)
+        {
+            var dataTable = PersistenciaMySql.ExecuteConsulta(
+                $"SELECT calldate, userfield " +
+                $"FROM cdr " +
+                $"WHERE uniqueid = {uniqueId}");
+
+            var linhaResultado = dataTable.Rows.OfType<DataRow>().FirstOrDefault();
+
+            var data = ((DateTime)linhaResultado["calldate"]).ToString("yyyy-MM-dd");
+            var userField = linhaResultado["userfield"].ToString();
+
+            using (var httpClient = new HttpClient
+            {
+                BaseAddress = new Uri($"http://{Sessao.Configuracao.ConexaoAsterisk.HostDoAsterisk}/"),
+                Timeout = TimeSpan.FromSeconds(10)
+            })
+            {
+                return await httpClient.GetStreamAsync($"snep/arquivos/{data}/{userField}.wav");
+            }
         }
 
         #region IDisposable Support

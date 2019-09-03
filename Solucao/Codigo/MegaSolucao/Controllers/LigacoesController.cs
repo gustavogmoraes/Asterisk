@@ -14,13 +14,19 @@ namespace MegaSolucao.Controllers
     [ApiController]
     public class LigacoesController : ControllerBase
     {
+        private ServicoDeLigacoes _servico;
+        private ServicoDeLigacoes Servico => _servico ?? (_servico = new ServicoDeLigacoes());
+
         [HttpPost("[action]")]
         public ActionResult<List<DtoLigacao>> ConsulteLigacoes([FromBody]DtoConsultaLigacoes filtro)
         {
-            using(var servico = new ServicoDeLigacoes())
-            {
-                return servico.ObtenhaLigacoes(filtro);
-            }
+            return Servico.ObtenhaLigacoes(filtro);
+        }
+
+        [HttpGet("[action]?{uniqueId}")]
+        public FileStreamResult ObtenhaGravacao(string uniqueId)
+        {
+            return new FileStreamResult(Servico.ObtenhaGravacao(uniqueId).Result, ".wav");
         }
     }
 }

@@ -13,7 +13,7 @@ namespace MegaSolucao.Negocio.Objetos
 
         public TimeSpan Duracao { get; set; }
 
-        public string UserField { get; set; }
+        public string UniqueId { get; set; }
 
         public string position { get; set; }
   }
