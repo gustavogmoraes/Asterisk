@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -58,6 +59,7 @@ namespace MegaSolucao.Utilitarios
             }
             
         }
+
         public static TTipo CloneObjeto<TTipo>(this TTipo objeto, Action<TTipo> objectInitializer = null)
             where TTipo : class, new()
         {
@@ -72,6 +74,13 @@ namespace MegaSolucao.Utilitarios
             objectInitializer?.Invoke(novoObjeto);
 
             return novoObjeto;
+        }
+
+        public static string ConvertaStringDateTimePtBrParaEnUs(this string stringDateTime)
+        {
+            var datetime = Convert.ToDateTime(stringDateTime, CultureInfo.GetCultureInfo("pt-BR"));
+
+            return datetime.ToString("yyyy-MM-dd HH:mm:ss");
         }
     }
 }
