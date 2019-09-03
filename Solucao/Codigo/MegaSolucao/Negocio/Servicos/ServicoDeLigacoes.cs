@@ -28,13 +28,17 @@ namespace MegaSolucao.Negocio.Servicos
 
             if (!string.IsNullOrEmpty(dataHoraInicio))
             {
-                filtros.Add($"calldate >= '{dataHoraInicio}'" +
-                            $"AND calldate <= '{dataHoraFim}' ");
+                filtros.Add($"calldate >= '{dataHoraInicio.ConvertaStringDateTimePtBrParaEnUs()}'");
+            }
+
+            if(!string.IsNullOrEmpty(dataHoraFim))
+            {
+                filtros.Add($"calldate <= '{dataHoraFim.ConvertaStringDateTimePtBrParaEnUs()}'");
             }
                 
 
             var filtroFinal = string.Join("AND ,", filtros);
-            if (filtros.Count > 0)
+            if (filtros.Count > 1)
             {
                 filtroFinal = filtroFinal.Remove(filtroFinal.Length - 5);
             }
