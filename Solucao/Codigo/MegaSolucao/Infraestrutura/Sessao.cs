@@ -39,5 +39,10 @@ namespace MegaSolucao.Infraestrutura
         }
 
         public static Configuracao Configuracao { get; set; }
+
+        public static Uri ObtenhaUriBase()
+        {
+            return new Uri($"http://{Configuracao.ConexaoAsterisk.HostDoAsterisk}/");
+        }
     }
 }

@@ -151,16 +151,61 @@ namespace MegaSolucao.Negocio.Servicos
             var data = ((DateTime)linhaResultado?["calldate"]).ToString("yyyy-MM-dd");
             var userField = linhaResultado["userfield"].ToString();
 
-            using (var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri($"http://{Sessao.Configuracao.ConexaoAsterisk.HostDoAsterisk}/"),
-                Timeout = TimeSpan.FromSeconds(10)
-            })
+            using (var httpClient = CrieHttpClient())
             {
                 nomeDoArquivo = $"{userField}.wav";
 
-                return httpClient.GetStreamAsync($"snep/arquivos/{data}/{userField}.wav").Result;
+                return httpClient.GetStreamAsync(ObtenhaUrlGravacao(data, userField)).Result;
             }
+        }
+
+        private static string ObtenhaUrlGravacao(string data, string userField)
+        {
+            return $"snep/arquivos/{data}/{userField}.wav";
+        }
+
+        private async void BaixeArquivoEmDiretorioEspecifico(string urlArquivo, string caminhoNoComputador)
+        {
+            using (var httpClient = new HttpClient())
+            using (var stream = await httpClient.GetStreamAsync(caminhoNoComputador))
+            using (var outputStream = new FileStream(caminhoNoComputador, FileMode.Create))
+            {
+                await stream.CopyToAsync(outputStream);
+            }
+        }
+
+        //Criar WebHelper
+        private static HttpClient CrieHttpClient()
+        {
+            return new HttpClient
+            {
+                BaseAddress = Sessao.ObtenhaUriBase(),
+                Timeout = TimeSpan.FromSeconds(10)
+            };
+        }
+
+        public Stream ObtenhaListaDeGravacoes(IList<string> ids, out string nomeDoArquivo)
+        {
+            nomeDoArquivo = $"ListaDeGravacoes{DateTime.Now:dd_MM_yyyy_HH_mm_ss}.zip";
+            var dataTable = PersistenciaMySql.ExecuteConsulta(
+                $"SELECT calldate, userfield " +
+                $"FROM cdr " +
+                $"WHERE uniqueid IN ({string.Join(", ", ids)})");
+
+            var listaDeGravacoes = dataTable.Rows.OfType<DataRow>().Select(x => new
+            {
+                Data = ((DateTime)x?["calldate"]).ToString("yyyy-MM-dd"),
+                UserField = x["userfield"].ToString()
+            }).ToList();
+
+            Parallel.ForEach(listaDeGravacoes, x =>
+            {
+                BaixeArquivoEmDiretorioEspecifico(
+                    ObtenhaUrlGravacao(x.Data, x.UserField),
+                    $@"{AppDomain.CurrentDomain.BaseDirectory}\{x.UserField}");
+            });
+
+            return Stream.Null;
         }
 
         #region IDisposable Support

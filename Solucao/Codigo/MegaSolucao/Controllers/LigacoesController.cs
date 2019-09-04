@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using MegaSolucao.Negocio.DTOs;
 using MegaSolucao.Negocio.Objetos;
@@ -28,7 +29,16 @@ namespace MegaSolucao.Controllers
         public FileResult ObtenhaGravacao(string uniqueId)
         {
             var result = Servico.ObtenhaGravacao(uniqueId, out var nomeDoArquivo);
+
             return File(result, "audio/x-wav", nomeDoArquivo);
+        }
+
+        [HttpGet("[action]")]
+        public FileResult ObtenhaListaDeGravacoes(string[] ids)
+        {
+            var result = Servico.ObtenhaListaDeGravacoes(ids, out var nomeDoArquivo);
+
+            return File(result, MediaTypeNames.Application.Zip, nomeDoArquivo);
         }
     }
 }
