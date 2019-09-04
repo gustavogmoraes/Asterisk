@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,11 +22,12 @@ namespace MegaSolucao.Controllers
         {
             return Servico.ObtenhaLigacoes(filtro);
         }
-
+      /*
         [HttpGet("[action]?{uniqueId}")]
         public FileStreamResult ObtenhaGravacao(string uniqueId)
         {
             return new FileStreamResult(Servico.ObtenhaGravacao(uniqueId).Result, ".wav");
         }
+        */
     }
 }
