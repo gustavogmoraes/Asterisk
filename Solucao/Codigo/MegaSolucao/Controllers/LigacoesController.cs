@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using MegaSolucao.Negocio.DTOs;
@@ -22,12 +23,12 @@ namespace MegaSolucao.Controllers
         {
             return Servico.ObtenhaLigacoes(filtro);
         }
-      /*
-        [HttpGet("[action]?{uniqueId}")]
-        public FileStreamResult ObtenhaGravacao(string uniqueId)
+
+        [HttpGet("[action]/{uniqueId}")]
+        public FileResult ObtenhaGravacao(string uniqueId)
         {
-            return new FileStreamResult(Servico.ObtenhaGravacao(uniqueId).Result, ".wav");
+            var result = Servico.ObtenhaGravacao(uniqueId, out var nomeDoArquivo);
+            return File(result, "audio/x-wav", nomeDoArquivo);
         }
-        */
     }
 }

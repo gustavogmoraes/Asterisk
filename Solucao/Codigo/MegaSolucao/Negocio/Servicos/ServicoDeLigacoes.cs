@@ -14,6 +14,7 @@ using System.IO;
 using System.Net.Http;
 using MegaSolucao.Infraestrutura;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.WebSockets.Internal;
 
 namespace MegaSolucao.Negocio.Servicos
 {
@@ -40,14 +41,12 @@ namespace MegaSolucao.Negocio.Servicos
             {
                 filtros.Add($"calldate <= '{dataHoraFim.ConvertaStringDateTimePtBrParaEnUs()}'");
             }
-                
 
             var filtroFinal = string.Join("AND ,", filtros);
             if (filtros.Count > 1)
             {
                 filtroFinal = filtroFinal.Remove(filtroFinal.Length - 5);
             }
-
 
             var query = $"SELECT src, dst, calldate, uniqueid, duration " +
                         $"FROM cdr ";
@@ -139,7 +138,7 @@ namespace MegaSolucao.Negocio.Servicos
             };
         }
 
-        public async Task<Stream> ObtenhaGravacao(string uniqueId)
+        public Stream ObtenhaGravacao(string uniqueId, out string nomeDoArquivo)
         {
             var dataTable = PersistenciaMySql.ExecuteConsulta(
                 $"SELECT calldate, userfield " +
@@ -148,7 +147,7 @@ namespace MegaSolucao.Negocio.Servicos
 
             var linhaResultado = dataTable.Rows.OfType<DataRow>().FirstOrDefault();
 
-            var data = ((DateTime)linhaResultado["calldate"]).ToString("yyyy-MM-dd");
+            var data = ((DateTime)linhaResultado?["calldate"]).ToString("yyyy-MM-dd");
             var userField = linhaResultado["userfield"].ToString();
 
             using (var httpClient = new HttpClient
@@ -157,7 +156,9 @@ namespace MegaSolucao.Negocio.Servicos
                 Timeout = TimeSpan.FromSeconds(10)
             })
             {
-                return await httpClient.GetStreamAsync($"snep/arquivos/{data}/{userField}.wav");
+                nomeDoArquivo = $"{userField}.wav";
+
+                return httpClient.GetStreamAsync($"snep/arquivos/{data}/{userField}.wav").Result;
             }
         }
 
