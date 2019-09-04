@@ -49,7 +49,7 @@ namespace MegaSolucao.Negocio.Servicos
             }
 
 
-            var query = $"SELECT src, dst, calldate, userfield, duration " +
+            var query = $"SELECT src, dst, calldate, uniqueid, duration " +
                         $"FROM cdr ";
             if (!string.IsNullOrEmpty(filtroFinal))
             {
