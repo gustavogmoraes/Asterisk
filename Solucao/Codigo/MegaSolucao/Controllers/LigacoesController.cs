@@ -33,8 +33,8 @@ namespace MegaSolucao.Controllers
             return File(result, "audio/x-wav", nomeDoArquivo);
         }
 
-        [HttpGet("[action]")]
-        public FileResult ObtenhaListaDeGravacoes(string[] ids)
+        [HttpPost("[action]")]
+        public FileResult ObtenhaListaDeGravacoes([FromBody]string[] ids)
         {
             var result = Servico.ObtenhaListaDeGravacoes(ids, out var nomeDoArquivo);
 

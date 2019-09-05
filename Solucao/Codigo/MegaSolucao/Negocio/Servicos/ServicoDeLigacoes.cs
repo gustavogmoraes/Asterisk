@@ -166,13 +166,13 @@ namespace MegaSolucao.Negocio.Servicos
             return $"snep/arquivos/{data}/{userField}.wav";
         }
 
-        private async void BaixeArquivoEmDiretorioEspecifico(string urlArquivo, string caminhoNoComputador)
+        private void BaixeArquivoEmDiretorioEspecifico(string urlArquivo, string caminhoNoComputador)
         {
-            using (var httpClient = new HttpClient())
-            using (var stream = await httpClient.GetStreamAsync(caminhoNoComputador))
+            using (var httpClient = CrieHttpClient())
+            using (var stream = httpClient.GetStreamAsync(urlArquivo).Result)
             using (var outputStream = new FileStream(caminhoNoComputador, FileMode.Create))
             {
-                await stream.CopyToAsync(outputStream);
+                stream.CopyToAsync(outputStream).RunSynchronously();
             }
         }
 
@@ -184,37 +184,6 @@ namespace MegaSolucao.Negocio.Servicos
                 BaseAddress = Sessao.ObtenhaUriBase(),
                 Timeout = TimeSpan.FromSeconds(10)
             };
-        }
-
-        public MemoryStream CreateToMemoryStream(MemoryStream memStreamIn, string zipEntryName)
-        {
-
-            var outputMemStream = new MemoryStream();
-            using (var zipStream = new ZipOutputStream(outputMemStream))
-            {
-
-                // 0-9, 9 being the highest level of compression
-                zipStream.SetLevel(3);
-
-                ZipEntry newEntry = new ZipEntry(zipEntryName);
-                newEntry.DateTime = DateTime.Now;
-
-                zipStream.PutNextEntry(newEntry);
-
-                StreamUtils.Copy(memStreamIn, zipStream, new byte[4096]);
-                zipStream.CloseEntry();
-
-                // Stop ZipStream.Dispose() from also Closing the underlying stream.
-                zipStream.IsStreamOwner = false;
-            }
-
-            outputMemStream.Position = 0;
-            return outputMemStream;
-
-            // Alternative outputs:
-            // ToArray is the cleaner and easiest to use correctly with the penalty of duplicating allocated memory.
-            //byte[] byteArrayOut = outputMemStream.ToArray();
-
         }
 
         public Stream ObtenhaListaDeGravacoes(IList<string> ids, out string nomeDoArquivo)
@@ -231,13 +200,13 @@ namespace MegaSolucao.Negocio.Servicos
             {
                 Data = ((DateTime)x?["calldate"]).ToString("yyyy-MM-dd"),
                 UserField = x["userfield"].ToString()
-            }).ToList();
+            }).Where(x => !string.IsNullOrEmpty(x.UserField)).ToList();
 
-            Parallel.ForEach(listaDeGravacoes, x =>
+            listaDeGravacoes.ForEach(x =>
             {
                 BaixeArquivoEmDiretorioEspecifico(
                     ObtenhaUrlGravacao(x.Data, x.UserField),
-                    $@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\{x.UserField}");
+                    $@"{AppDomain.CurrentDomain.BaseDirectory}/Gravacoes/{idOperacao}\{x.UserField}.wav");
             });
 
             using (var zipOutputStream =
@@ -245,14 +214,36 @@ namespace MegaSolucao.Negocio.Servicos
                     File.Create($@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\Zippadas.zip")))
             {
                 zipOutputStream.SetLevel(4);
+                byte[] buffer = new byte[4096];
+
                 listaDeGravacoes.ForEach(x =>
                 {
-                    var zipEntry =new ZipEntry($@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\{x.UserField}");
-                });
-            }
-            
+                    var caminhoArquivo = $@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\{x.UserField}";
 
-            return Stream.Null;
+                    var zipEntry = new ZipEntry(caminhoArquivo)
+                    {
+                        DateTime = DateTime.Now
+                    };
+
+                    zipOutputStream.PutNextEntry(zipEntry);
+
+                    using (var fileStream = File.OpenRead(caminhoArquivo))
+                    {
+                        int sourceBytes;
+
+                        do
+                        {
+                            sourceBytes = fileStream.Read(buffer, 0, buffer.Length);
+                            zipOutputStream.Write(buffer, 0, sourceBytes);
+                        } while (sourceBytes > 0);
+                    }
+                });
+
+                zipOutputStream.Finish();
+                zipOutputStream.Close();
+            }
+
+            return File.OpenRead($@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\Zippadas.zip");
         }
 
         #region IDisposable Support
