@@ -14,6 +14,8 @@ using System.IO;
 using System.Net.Http;
 using MegaSolucao.Infraestrutura;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Core;
+using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.AspNetCore.WebSockets.Internal;
 
 namespace MegaSolucao.Negocio.Servicos
@@ -184,8 +186,41 @@ namespace MegaSolucao.Negocio.Servicos
             };
         }
 
+        public MemoryStream CreateToMemoryStream(MemoryStream memStreamIn, string zipEntryName)
+        {
+
+            var outputMemStream = new MemoryStream();
+            using (var zipStream = new ZipOutputStream(outputMemStream))
+            {
+
+                // 0-9, 9 being the highest level of compression
+                zipStream.SetLevel(3);
+
+                ZipEntry newEntry = new ZipEntry(zipEntryName);
+                newEntry.DateTime = DateTime.Now;
+
+                zipStream.PutNextEntry(newEntry);
+
+                StreamUtils.Copy(memStreamIn, zipStream, new byte[4096]);
+                zipStream.CloseEntry();
+
+                // Stop ZipStream.Dispose() from also Closing the underlying stream.
+                zipStream.IsStreamOwner = false;
+            }
+
+            outputMemStream.Position = 0;
+            return outputMemStream;
+
+            // Alternative outputs:
+            // ToArray is the cleaner and easiest to use correctly with the penalty of duplicating allocated memory.
+            //byte[] byteArrayOut = outputMemStream.ToArray();
+
+        }
+
         public Stream ObtenhaListaDeGravacoes(IList<string> ids, out string nomeDoArquivo)
         {
+            var idOperacao = Guid.NewGuid();
+
             nomeDoArquivo = $"ListaDeGravacoes{DateTime.Now:dd_MM_yyyy_HH_mm_ss}.zip";
             var dataTable = PersistenciaMySql.ExecuteConsulta(
                 $"SELECT calldate, userfield " +
@@ -202,8 +237,20 @@ namespace MegaSolucao.Negocio.Servicos
             {
                 BaixeArquivoEmDiretorioEspecifico(
                     ObtenhaUrlGravacao(x.Data, x.UserField),
-                    $@"{AppDomain.CurrentDomain.BaseDirectory}\{x.UserField}");
+                    $@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\{x.UserField}");
             });
+
+            using (var zipOutputStream =
+                new ZipOutputStream(
+                    File.Create($@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\Zippadas.zip")))
+            {
+                zipOutputStream.SetLevel(4);
+                listaDeGravacoes.ForEach(x =>
+                {
+                    var zipEntry =new ZipEntry($@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\{x.UserField}");
+                });
+            }
+            
 
             return Stream.Null;
         }
