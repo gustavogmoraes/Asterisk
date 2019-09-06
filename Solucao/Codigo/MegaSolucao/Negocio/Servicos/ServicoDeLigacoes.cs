@@ -12,11 +12,13 @@ using Raven.Client.Documents.Linq.Indexing;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using MegaSolucao.Infraestrutura;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.AspNetCore.WebSockets.Internal;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MegaSolucao.Negocio.Servicos
 {
@@ -172,7 +174,7 @@ namespace MegaSolucao.Negocio.Servicos
             using (var stream = httpClient.GetStreamAsync(urlArquivo).Result)
             using (var outputStream = new FileStream(caminhoNoComputador, FileMode.Create))
             {
-                stream.CopyToAsync(outputStream).RunSynchronously();
+                stream.CopyToAsync(outputStream).Wait();
             }
         }
 
@@ -186,41 +188,44 @@ namespace MegaSolucao.Negocio.Servicos
             };
         }
 
-        public Stream ObtenhaListaDeGravacoes(IList<string> ids, out string nomeDoArquivo)
+        public FileStream ObtenhaListaDeGravacoes(IList<string> ids, out string nomeArquivoZip)
         {
-            var idOperacao = Guid.NewGuid();
+            var idOperacao = $"{DateTime.Now:dd_MM_yyyy_HH_mm_ss}";
 
-            nomeDoArquivo = $"ListaDeGravacoes{DateTime.Now:dd_MM_yyyy_HH_mm_ss}.zip";
+            var caminhoPasta = Path.Combine($@"{AppDomain.CurrentDomain.BaseDirectory}", "Gravacoes", idOperacao);
+            Directory.CreateDirectory(caminhoPasta);
+
             var dataTable = PersistenciaMySql.ExecuteConsulta(
                 $"SELECT calldate, userfield " +
                 $"FROM cdr " +
-                $"WHERE uniqueid IN ({string.Join(", ", ids)})");
+                $"WHERE uniqueid IN ({string.Join(", ", ids)})" +
+                $"  AND userfield IS NOT NULL" +
+                $"  AND userfield != ''");
 
             var listaDeGravacoes = dataTable.Rows.OfType<DataRow>().Select(x => new
             {
                 Data = ((DateTime)x?["calldate"]).ToString("yyyy-MM-dd"),
                 UserField = x["userfield"].ToString()
-            }).Where(x => !string.IsNullOrEmpty(x.UserField)).ToList();
+            }).Distinct().ToList();
 
             listaDeGravacoes.ForEach(x =>
             {
-                BaixeArquivoEmDiretorioEspecifico(
-                    ObtenhaUrlGravacao(x.Data, x.UserField),
-                    $@"{AppDomain.CurrentDomain.BaseDirectory}/Gravacoes/{idOperacao}\{x.UserField}.wav");
+                var testePath = Path.Combine(caminhoPasta, $"{x.UserField}.wav");
+                BaixeArquivoEmDiretorioEspecifico(ObtenhaUrlGravacao(x.Data, x.UserField), testePath);
             });
 
-            using (var zipOutputStream =
-                new ZipOutputStream(
-                    File.Create($@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\Zippadas.zip")))
+            nomeArquivoZip = $"ListaDeGravacoes{idOperacao}.zip";
+            var teste = Path.Combine($@"{AppDomain.CurrentDomain.BaseDirectory}/Gravacoes/{idOperacao}", nomeArquivoZip);
+            using (var zipOutputStream = new ZipOutputStream(File.Create(teste)))
             {
                 zipOutputStream.SetLevel(4);
-                byte[] buffer = new byte[4096];
+                var buffer = new byte[4096];
 
                 listaDeGravacoes.ForEach(x =>
                 {
-                    var caminhoArquivo = $@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\{x.UserField}";
+                    var caminhoArquivo = Path.Combine(caminhoPasta, $"{x.UserField}.wav");
 
-                    var zipEntry = new ZipEntry(caminhoArquivo)
+                    var zipEntry = new ZipEntry($"{x.UserField}.wav")
                     {
                         DateTime = DateTime.Now
                     };
@@ -243,7 +248,21 @@ namespace MegaSolucao.Negocio.Servicos
                 zipOutputStream.Close();
             }
 
-            return File.OpenRead($@"{AppDomain.CurrentDomain.BaseDirectory}\Gravacoes\{idOperacao}\Zippadas.zip");
+            var caminhoArquivoZip = Path.Combine(caminhoPasta, nomeArquivoZip);
+
+            // Apaga o arquivo após x segundos, calculados com tempo de sobra pro usuário baixar, mesmo com uma taxa de 1 MB/s
+            Task.Run(() =>
+            {
+                var fileInfo = new FileInfo(caminhoArquivoZip);
+                var tamanhoEmMb = Convert.ToDecimal(fileInfo.Length / 1000000);
+                var segundosEstimados = Convert.ToInt32(Math.Round(tamanhoEmMb));
+
+                Thread.Sleep(TimeSpan.FromSeconds(segundosEstimados > 15 ? segundosEstimados : 15));
+                MegaUtilitarios.ApagueDiretorioEArquivos(caminhoPasta);
+
+            });
+
+            return File.OpenRead(caminhoArquivoZip);
         }
 
         #region IDisposable Support
@@ -281,5 +300,7 @@ namespace MegaSolucao.Negocio.Servicos
             // GC.SuppressFinalize(this);
         }
         #endregion
+
+        
     }
 }

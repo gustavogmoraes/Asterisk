@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -81,6 +82,23 @@ namespace MegaSolucao.Utilitarios
             var datetime = Convert.ToDateTime(stringDateTime, CultureInfo.GetCultureInfo("pt-BR"));
 
             return datetime.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+        public static void ApagueDiretorioEArquivos(string caminhoPasta)
+        {
+            var di = new DirectoryInfo(caminhoPasta);
+
+            foreach (var file in di.GetFiles())
+            {
+                file.Delete();
+            }
+
+            foreach (var dir in di.GetDirectories())
+            {
+                dir.Delete(true);
+            }
+
+            Directory.Delete(caminhoPasta);
         }
     }
 }

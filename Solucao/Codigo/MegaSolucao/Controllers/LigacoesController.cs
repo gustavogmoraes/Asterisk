@@ -25,20 +25,22 @@ namespace MegaSolucao.Controllers
             return Servico.ObtenhaLigacoes(filtro);
         }
 
+        [HttpGet("[action]/{idsStringified}")]
+        public FileResult ObtenhaGravacoes(string idsStringified)
+        {
+            var ids = idsStringified.Split('|');
+
+            return ids.Length == 1 
+                   ? File(Servico.ObtenhaGravacao(ids.FirstOrDefault(), out var nomeDoArquivo), "audio/x-wav", nomeDoArquivo)
+                   : File(Servico.ObtenhaListaDeGravacoes(ids, out var nomeArquivo), MediaTypeNames.Application.Zip, nomeArquivo);
+        }
+
         [HttpGet("[action]/{uniqueId}")]
         public FileResult ObtenhaGravacao(string uniqueId)
         {
             var result = Servico.ObtenhaGravacao(uniqueId, out var nomeDoArquivo);
 
             return File(result, "audio/x-wav", nomeDoArquivo);
-        }
-
-        [HttpPost("[action]")]
-        public FileResult ObtenhaListaDeGravacoes([FromBody]string[] ids)
-        {
-            var result = Servico.ObtenhaListaDeGravacoes(ids, out var nomeDoArquivo);
-
-            return File(result, MediaTypeNames.Application.Zip, nomeDoArquivo);
         }
     }
 }
