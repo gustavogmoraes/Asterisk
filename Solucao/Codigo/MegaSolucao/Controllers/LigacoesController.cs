@@ -36,6 +36,14 @@ namespace MegaSolucao.Controllers
         }
 
         [HttpGet("[action]/{uniqueId}")]
+        public FileStreamResult ObtenhaGravacaoParaPlayer(string uniqueId)
+        {
+            var result = Servico.ObtenhaGravacao(uniqueId, out _);
+
+            return new FileStreamResult(result, "audio/x-wav");
+        }
+
+        [HttpGet("[action]/{uniqueId}")]
         public FileResult ObtenhaGravacao(string uniqueId)
         {
             var result = Servico.ObtenhaGravacao(uniqueId, out var nomeDoArquivo);
