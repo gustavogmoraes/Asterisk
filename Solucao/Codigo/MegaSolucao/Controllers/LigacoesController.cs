@@ -42,6 +42,7 @@ namespace MegaSolucao.Controllers
         [HttpGet("[action]/{uniqueId}")]
         public FileStreamResult TransmitaGravacao(string uniqueId)
         {
+            Response.Headers.Add("Content-Disposition", "inline; filename=\"" + $"{uniqueId}.wav" + "\"");
             return File(Servico.ObtenhaGravacaoParaPlayer(uniqueId), "audio/x-wav", true);
         }
     }
