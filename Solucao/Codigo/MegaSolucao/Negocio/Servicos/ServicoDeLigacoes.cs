@@ -12,6 +12,7 @@ using Raven.Client.Documents.Linq.Indexing;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using MegaSolucao.Infraestrutura;
 using System.Threading.Tasks;
@@ -161,6 +162,24 @@ namespace MegaSolucao.Negocio.Servicos
 
                 return httpClient.GetStreamAsync(ObtenhaUrlGravacao(data, userField)).Result;
             }
+        }
+
+        public FileStream ObtenhaGravacaoParaPlayer(string uniqueId)
+        {
+            var dataTable = PersistenciaMySql.ExecuteConsulta(
+                $"SELECT calldate, userfield " +
+                $"FROM cdr " +
+                $"WHERE uniqueid = {uniqueId}");
+
+            var linhaResultado = dataTable.Rows.OfType<DataRow>().FirstOrDefault();
+
+            var data = ((DateTime)linhaResultado?["calldate"]).ToString("yyyy-MM-dd");
+            var userField = linhaResultado["userfield"].ToString();
+
+            var caminhoTemporario = Path.GetTempFileName();
+            BaixeArquivoEmDiretorioEspecifico(ObtenhaUrlGravacao(data, userField), caminhoTemporario);
+
+            return File.OpenRead(caminhoTemporario);
         }
 
         private static string ObtenhaUrlGravacao(string data, string userField)

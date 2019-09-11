@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using MegaSolucao.Negocio.DTOs;
@@ -9,6 +11,8 @@ using MegaSolucao.Negocio.Objetos;
 using MegaSolucao.Negocio.Servicos;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
+using RangeHeaderValue = System.Net.Http.Headers.RangeHeaderValue;
 
 namespace MegaSolucao.Controllers
 {
@@ -26,7 +30,7 @@ namespace MegaSolucao.Controllers
         }
 
         [HttpGet("[action]/{idsStringified}")]
-        public FileResult ObtenhaGravacoes(string idsStringified)
+        public FileResult BaixeGravacoes(string idsStringified)
         {
             var ids = idsStringified.Split('|');
 
@@ -36,19 +40,9 @@ namespace MegaSolucao.Controllers
         }
 
         [HttpGet("[action]/{uniqueId}")]
-        public FileStreamResult ObtenhaGravacaoParaPlayer(string uniqueId)
+        public FileStreamResult TransmitaGravacao(string uniqueId)
         {
-            var result = Servico.ObtenhaGravacao(uniqueId, out _);
-
-            return new FileStreamResult(result, "audio/x-wav");
-        }
-
-        [HttpGet("[action]/{uniqueId}")]
-        public FileResult ObtenhaGravacao(string uniqueId)
-        {
-            var result = Servico.ObtenhaGravacao(uniqueId, out var nomeDoArquivo);
-
-            return File(result, "audio/x-wav", nomeDoArquivo);
+            return File(Servico.ObtenhaGravacaoParaPlayer(uniqueId), "audio/x-wav", true);
         }
     }
 }
