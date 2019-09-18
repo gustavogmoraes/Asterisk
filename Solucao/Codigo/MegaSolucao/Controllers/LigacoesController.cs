@@ -6,13 +6,12 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Threading.Tasks;
+using MegaSolucao.Infraestrutura;
 using MegaSolucao.Negocio.DTOs;
 using MegaSolucao.Negocio.Objetos;
 using MegaSolucao.Negocio.Servicos;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
-using RangeHeaderValue = System.Net.Http.Headers.RangeHeaderValue;
 
 namespace MegaSolucao.Controllers
 {
@@ -26,7 +25,7 @@ namespace MegaSolucao.Controllers
         [HttpPost("[action]")]
         public ActionResult<List<DtoLigacao>> ConsulteLigacoes([FromBody]DtoConsultaLigacoes filtro)
         {
-            return Servico.ObtenhaLigacoes(filtro);
+            return Ok(Servico.ObtenhaLigacoes(filtro));
         }
 
         [HttpGet("[action]/{idsStringified}")]

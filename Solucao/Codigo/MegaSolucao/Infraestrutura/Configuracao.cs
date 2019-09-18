@@ -13,6 +13,8 @@ namespace MegaSolucao.Infraestrutura
 
         public ConexaoMySql ConexaoMySql { get; set; }
 
+        public string HostApiAutenticacao { get; set; }
+
         public TimeSpan CooldownExecutarLigacoes { get; set; }
     }
 }

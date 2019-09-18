@@ -47,12 +47,7 @@ namespace MegaSolucao.Negocio.Servicos
                 filtros.Add($"calldate <= '{dataHoraFim.ConvertaStringDateTimePtBrParaEnUs()}'");
             }
 
-
             var filtroFinal = string.Join(" AND ", filtros);
-            /*if (filtros.Count > 1)
-            {
-                filtroFinal = filtroFinal.Remove(filtroFinal.Length - 5);
-            }*/
 
             var query = $"SELECT src, dst, calldate, uniqueid, duration " +
                         $"FROM cdr ";
@@ -105,14 +100,13 @@ namespace MegaSolucao.Negocio.Servicos
             }
 
             int i = 1;
-            var dtosPosition = dtos.OrderByDescending(x => x.DataHora).ToList();
-            dtosPosition.ForEach(x =>
+            return dtos.OrderByDescending(x => x.DataHora).Select(x =>
             {
-              x.position = i++.ToString();
-          
-              });
-            return dtosPosition;
-    }
+                x.position = i++.ToString();
+
+                return x;
+            }).ToList();
+        }
 
         private DtoLigacao ConvertaParaDto(Ligacao ligacao)
         {

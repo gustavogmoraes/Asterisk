@@ -23,7 +23,7 @@ namespace MegaSolucao.Infraestrutura
                 },
                 ConexaoRavenDB = new ConexaoRavenDB
                 {
-                    Servidor = @"localhost:32769",
+                    Servidor = @"localhost:32772",
                     NomeDoBanco = "Test"
                 },
                 ConexaoMySql = new ConexaoMySql
@@ -34,6 +34,7 @@ namespace MegaSolucao.Infraestrutura
                     Usuario = "root",
                     Senha = "sneppass"
                 },
+                HostApiAutenticacao = "https://localhost:5003/api/Auth/",
                 CooldownExecutarLigacoes = TimeSpan.FromSeconds(10)
             };
         }

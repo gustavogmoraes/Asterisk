@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using MegaSolucao.Infraestrutura;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -45,8 +46,8 @@ namespace MegaSolucao
             }
 
             app.UseHttpsRedirection();
-
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            app.UseMiddleware<MiddlewareAutenticacao>();
 
             app.UseMvc(routes =>
             {
