@@ -26,7 +26,7 @@ namespace MegaSolucao.Infraestrutura
 
         public async Task Invoke(HttpContext context)
         {
-            var token = context.Request.Path.Value.Split('/').LastOrDefault();
+            var token = ObtenhaTokenDaUrl(context.Request.Path);
 
             if (!Guid.TryParse(token, out var guidToken))
             {
@@ -50,9 +50,20 @@ namespace MegaSolucao.Infraestrutura
             await _next.Invoke(context);
         }
 
+        private string ObtenhaTokenDaUrl(PathString caminho)
+        {
+            return caminho.Value.Split('/')[4];
+        }
+
         private void RemovaToken(HttpContext context, string token)
         {
-            context.Request.Path = new PathString(context.Request.Path.Value.Remove(context.Request.Path.Value.IndexOf(token, StringComparison.Ordinal)));
+            var caminhoSemToken = context.Request.Path.Value.Remove(context.Request.Path.Value.IndexOf(token, StringComparison.Ordinal), token.Length);
+            if (caminhoSemToken.Contains("//"))
+            {
+                caminhoSemToken = caminhoSemToken.Remove(caminhoSemToken.IndexOf("//", StringComparison.Ordinal), 1);
+            }
+
+            context.Request.Path = new PathString(caminhoSemToken);
         }
     }
 }
