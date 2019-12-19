@@ -1,25 +1,17 @@
-using System;
-using System.Linq;
-
-using System.Collections.Generic;
-using System.Data;
+using ICSharpCode.SharpZipLib.Zip;
+using MegaSolucao.Infraestrutura;
 using MegaSolucao.Negocio.DTOs;
 using MegaSolucao.Negocio.Objetos;
 using MegaSolucao.Persistencia.BancoDeDados.MySql;
-using System.Globalization;
 using MegaSolucao.Utilitarios;
-using Raven.Client.Documents.Linq.Indexing;
-using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Data;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
-using MegaSolucao.Infraestrutura;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Core;
-using ICSharpCode.SharpZipLib.Zip;
-using Microsoft.AspNetCore.WebSockets.Internal;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace MegaSolucao.Negocio.Servicos
 {
@@ -191,7 +183,6 @@ namespace MegaSolucao.Negocio.Servicos
             }
         }
 
-        //Criar WebHelper
         private static HttpClient CrieHttpClient()
         {
             return new HttpClient
@@ -313,7 +304,5 @@ namespace MegaSolucao.Negocio.Servicos
             // GC.SuppressFinalize(this);
         }
         #endregion
-
-        
     }
 }

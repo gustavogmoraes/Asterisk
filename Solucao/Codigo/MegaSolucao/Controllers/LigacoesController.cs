@@ -19,30 +19,36 @@ namespace MegaSolucao.Controllers
     [ApiController]
     public class LigacoesController : ControllerBase
     {
-        private ServicoDeLigacoes _servico;
-        private ServicoDeLigacoes Servico => _servico ?? (_servico = new ServicoDeLigacoes());
-
         [HttpPost("[action]")]
         public ActionResult<List<DtoLigacao>> ConsulteLigacoes([FromBody]DtoConsultaLigacoes filtro)
         {
-            return Ok(Servico.ObtenhaLigacoes(filtro));
+            using (var servico = new ServicoDeLigacoes())
+            {
+                return Ok(servico.ObtenhaLigacoes(filtro));
+            }
         }
 
         [HttpGet("[action]/{idsStringified}")]
         public FileResult BaixeGravacoes(string idsStringified)
         {
-            var ids = idsStringified.Split('|');
+            using (var servico = new ServicoDeLigacoes())
+            {
+                var ids = idsStringified.Split('|');
 
-            return ids.Length == 1 
-                   ? File(Servico.ObtenhaGravacao(ids.FirstOrDefault(), out var nomeDoArquivo), "audio/x-wav", nomeDoArquivo)
-                   : File(Servico.ObtenhaListaDeGravacoes(ids, out var nomeArquivo), MediaTypeNames.Application.Zip, nomeArquivo);
+                return ids.Length == 1
+                    ? File(servico.ObtenhaGravacao(ids.FirstOrDefault(), out var nomeDoArquivo), "audio/x-wav", nomeDoArquivo)
+                    : File(servico.ObtenhaListaDeGravacoes(ids, out var nomeArquivo), MediaTypeNames.Application.Zip, nomeArquivo);
+            }
         }
 
         [HttpGet("[action]/{uniqueId}")]
         public FileStreamResult TransmitaGravacao(string uniqueId)
         {
-            Response.Headers.Add("Content-Disposition", "inline; filename=\"" + $"{uniqueId}.wav" + "\"");
-            return File(Servico.ObtenhaGravacaoParaPlayer(uniqueId), "audio/x-wav", true);
+            using (var servico = new ServicoDeLigacoes())
+            {
+                Response.Headers.Add("Content-Disposition", "inline; filename=\"" + $"{uniqueId}.wav" + "\"");
+                return File(servico.ObtenhaGravacaoParaPlayer(uniqueId), "audio/x-wav", true);
+            }
         }
     }
 }

@@ -10,5 +10,7 @@ namespace MegaSolucao.Infraestrutura
         public string Servidor { get; set; }
 
         public string NomeDoBanco { get; set; }
+
+        public string CaminhoCertificado { get; set; }
     }
 }

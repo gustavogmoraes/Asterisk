@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,30 +12,34 @@ namespace MegaSolucao.Infraestrutura
     {
         static Sessao()
         {
+            var ipGoogleCloudMachine = "35.199.90.33";
+            var ipAuthMachine = "34.95.253.242";
+
             Configuracao = new Configuracao
             {
                 ConexaoAsterisk = new ConexaoAsterisk
                 {
                     HostDaAplicacao = "172.16.2.132",
-                    HostDoAsterisk = "35.199.90.33",
+                    HostDoAsterisk = ipGoogleCloudMachine,
                     PortaDoAsterisk = 5038,
                     LoginDoAsterisk = "snep",
                     SenhaDoAsterisk = "sneppass"
                 },
                 ConexaoRavenDB = new ConexaoRavenDB
                 {
-                    Servidor = @"localhost:32772",
-                    NomeDoBanco = "Test"
+                    Servidor = @"https://a.free.gsoftware.ravendb.cloud/",
+                    CaminhoCertificado = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "free.gsoftware.client.certificate.pfx"),
+                    NomeDoBanco = "Mega.Aplicacao"
                 },
                 ConexaoMySql = new ConexaoMySql
                 {
-                    Servidor = "35.199.90.33",
+                    Servidor = ipGoogleCloudMachine,
                     Porta = 3306,
-                    NomeDoBanco = "snep",
                     Usuario = "root",
-                    Senha = "sneppass"
+                    Senha = "sneppass",
+                    NomeDoBanco = "snep"
                 },
-                HostApiAutenticacao = "https://localhost:5003/api/Auth/",
+                HostApiAutenticacao = $@"https://{ipAuthMachine}:5003/api/Auth/",
                 CooldownExecutarLigacoes = TimeSpan.FromSeconds(10)
             };
         }

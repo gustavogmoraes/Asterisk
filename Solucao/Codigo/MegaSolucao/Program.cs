@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using AsterNET;
 using AsterNET.FastAGI;
 using AsterNET.FastAGI.MappingStrategies;
 using AsterNET.Manager;
@@ -13,15 +5,12 @@ using AsterNET.Manager.Action;
 using AsterNET.Manager.Event;
 using AsterNET.Manager.Response;
 using MegaSolucao.Infraestrutura;
-using MegaSolucao.Persistencia.BancoDeDados.MySql;
-using MegaSolucao.Persistencia.BancoDeDados.Raven;
 using MegaSolucao.Utilitarios;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Raven.Client.Documents;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace MegaSolucao
 {

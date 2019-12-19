@@ -49,10 +49,12 @@ namespace MegaSolucao
             app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             app.UseMiddleware<MiddlewareAutenticacao>();
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute("default", "api/{controller}/{action}/{id?}");
-            });
+            app.UseMvcWithDefaultRoute();
+
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute("default", "api/{controller}/{action}/{id?}");
+            //});
         }
     }
 }

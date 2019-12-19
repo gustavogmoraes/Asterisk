@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using MegaSolucao.Infraestrutura;
 using Raven.Client.Documents;
@@ -15,8 +16,13 @@ namespace MegaSolucao.Persistencia.BancoDeDados.Raven
     {
         public GSDocumentStore()
         {
-            Urls = new[] { @"http://" + Sessao.Configuracao.ConexaoRavenDB.Servidor };
+            Urls = new[] { Sessao.Configuracao.ConexaoRavenDB.Servidor };
             Database = Sessao.Configuracao.ConexaoRavenDB.NomeDoBanco;
+
+            if (!string.IsNullOrEmpty(Sessao.Configuracao.ConexaoRavenDB.CaminhoCertificado))
+            {
+                Certificate = new X509Certificate2(Sessao.Configuracao.ConexaoRavenDB.CaminhoCertificado);
+            }
 
             SobrescrevaConventions();
             Initialize();
@@ -26,6 +32,11 @@ namespace MegaSolucao.Persistencia.BancoDeDados.Raven
         {
             Urls = new[] { url };
             Database = database;
+
+            if (!string.IsNullOrEmpty(Sessao.Configuracao.ConexaoRavenDB.CaminhoCertificado))
+            {
+                Certificate = new X509Certificate2(Sessao.Configuracao.ConexaoRavenDB.CaminhoCertificado);
+            }
 
             SobrescrevaConventions();
             Initialize();
